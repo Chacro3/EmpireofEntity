@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Empires of Eternity</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Load Phaser library -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+  </head>
+  <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+      <div class="loading-container">
+        <h2>Loading Empires of Eternity</h2>
+        <div class="progress-bar">
+          <div class="progress" id="loading-progress"></div>
+        </div>
+        <div id="loading-status">Initializing...</div>
+      </div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container" style="display: none">
+      <!-- Game UI Elements -->
+      <div id="resources"></div>
+      <div id="entity-info"></div>
+      <div id="actions-panel"></div>
+      <div id="messages"></div>
+      <div id="age-display"></div>
+      <div id="minimap"></div>
+      <div id="selection-info"></div>
+
+      <!-- Day/Night Visual Effects -->
+      <div class="day-overlay"></div>
+      <div class="night-overlay"></div>
+
+      <!-- Canvas and UI Container -->
+      <canvas id="game-canvas"></canvas>
+      <div id="ui-container"></div>
+    </div>
+
+    <!-- Load Config First -->
+    <script src="js/config.js"></script>
+    <script src="config-wrapper.js"></script>
+
+    <!-- Initialization Script -->
+    <script>
+      // Ensure CONFIG is available globally
+      if (
+        typeof CONFIG !== "undefined" &&
+        typeof window.CONFIG === "undefined"
+      ) {
+        window.CONFIG = CONFIG;
+      }
+
+      // Create global debug object for tracking script loading
+      window.LoadDebug = {
+        log: function (message) {
+          console.log("[LOADER] " + message);
+          const status = document.getElementById("loading-status");
+          if (status) status.textContent = message;
+        },
+        error: function (message) {
+          console.error("[LOADER ERROR] " + message);
+          const status = document.getElementById("loading-status");
+          if (status) {
+            status.textContent = "Error: " + message;
+            status.style.color = "#ff6b6b";
+          }
+        },
+      };
+
+      // Track loading progress
+      let loadedScripts = 0;
+      const totalScripts = 39; // Updated to include all scripts
+      const loadedScriptNames = [];
+
+      // Update the loading progress bar
+      function updateLoadingProgress() {
+        const progress = Math.floor((loadedScripts / totalScripts) * 100);
+        document.getElementById("loading-progress").style.width =
+          progress + "%";
+
+        // Ensure game initializes when all critical scripts are loaded
+        if (loadedScripts >= totalScripts) {
+          window.LoadDebug.log("All scripts loaded. Initializing game...");
+          initializeGame();
+        }
+      }
+
+      // Function to load a script and track progress
+      function loadScript(src, isModule = false) {
+        return new Promise((resolve, reject) => {
+          window.LoadDebug.log("Loading: " + src);
+
+          const script = document.createElement("script");
+          script.src = src;
+          if (isModule) script.type = "module";
+
+          script.onload = () => {
+            loadedScripts++;
+            loadedScriptNames.push(src);
+            window.LoadDebug.log(
+              "Loaded: " + src + " (" + loadedScripts + "/" + totalScripts + ")"
+            );
+            updateLoadingProgress();
+            resolve();
+          };
+
+          script.onerror = (e) => {
+            window.LoadDebug.error("Failed to load: " + src);
+            console.error(`Failed to load: ${src}`, e);
+            loadedScripts++;
+            updateLoadingProgress();
+            resolve(); // Continue despite errors for resilience
+          };
+
+          document.body.appendChild(script);
+        });
+      }
+
+      // Asynchronously load all scripts in correct order
+      async function loadAllScripts() {
+        try {
+          window.LoadDebug.log("Starting script loading sequence");
+
+          // Core files
+          await loadScript("js/core/utils.js");
+          await loadScript("js/core/audio.js");
+          await loadScript("js/core/input.js");
+          await loadScript("js/core/renderer.js");
+          await loadScript("js/core/game.js");
+
+          // Map files
+          await loadScript("js/map/terrain.js");
+          await loadScript("js/map/fog-of-war.js");
+          await loadScript("js/map/map.js");
+          await loadScript("js/map/pathfinding.js");
+
+          // Entity files
+          await loadScript("js/entities/entity.js");
+          await loadScript("js/entities/resource.js");
+          await loadScript("js/entities/unit.js");
+          await loadScript("js/entities/building.js");
+          await loadScript("js/entities/wall.js");
+          await loadScript("js/entities/wonder.js");
+          await loadScript("js/entities/entity-manager.js");
+
+          // Mechanics files - load resource-system first as it may be needed by others
+          await loadScript("js/mechanics/resource-system.js");
+          await loadScript("js/mechanics/resources.js");
+          await loadScript("js/mechanics/combat.js");
+          await loadScript("js/mechanics/damage-types.js");
+          await loadScript("js/mechanics/tech-tree.js");
+          await loadScript("js/mechanics/age-advancement.js");
+          await loadScript("js/mechanics/formations.js");
+          await loadScript("js/mechanics/alerts.js");
+          await loadScript("js/mechanics/auto-assign.js");
+          await loadScript("js/mechanics/victory.js");
+
+          // Civilization files
+          await loadScript("js/civilizations/civilization.js");
+          await loadScript("js/civilizations/solari.js");
+          await loadScript("js/civilizations/lunari.js");
+
+          // UI files
+          await loadScript("js/ui/ui-manager.js");
+          await loadScript("js/ui/minimap.js");
+          await loadScript("js/ui/resource-display.js");
+          await loadScript("js/ui/building-menu.js");
+          await loadScript("js/ui/unit-panel.js");
+          await loadScript("js/ui/tech-panel.js");
+          await loadScript("js/ui/alerts-display.js");
+
+          // AI files
+          await loadScript("js/ai/ai-behaviors.js");
+          await loadScript("js/ai/ai-player.js");
+          await loadScript("js/ai/difficulty.js");
+
+          // Game engine and main
+          await loadScript("js/game-engine.js");
+          await loadScript("js/main.js");
+
+          // No need to load these as root-level files if they're already in subdirectories
+          // await loadScript("game.js", true);
+          // await loadScript("entity.js", true);
+          // await loadScript("villager.js", true);
+          // await loadScript("resource-system.js", true);
+
+          window.LoadDebug.log("All scripts loaded successfully!");
+        } catch (error) {
+          window.LoadDebug.error("Script loading error: " + error.message);
+          console.error("Error loading scripts:", error);
+          // Force initialization even on error to maintain resilience
+          initializeGame();
+        }
+      }
+
+      // Initialize the game
+      function initializeGame() {
+        try {
+          window.LoadDebug.log("Initializing game...");
+
+          // Set up canvas properties
+          const canvas = document.getElementById("game-canvas");
+          if (!canvas) {
+            window.LoadDebug.error("Game canvas not found!");
+            return;
+          }
+
+          canvas.width = window.CONFIG
+            ? window.CONFIG.CANVAS.WIDTH || 1280
+            : 1280;
+          canvas.height = window.CONFIG
+            ? window.CONFIG.CANVAS.HEIGHT || 720
+            : 720;
+          window.LoadDebug.log(
+            `Canvas size set to ${canvas.width}x${canvas.height}`
+          );
+
+          // Hide loading screen, show game
+          document.getElementById("loading-screen").style.display = "none";
+          document.getElementById("game-container").style.display = "block";
+          window.LoadDebug.log("Loading screen hidden, game container visible");
+
+          // Try both initialization methods (for backward compatibility)
+          // Method 1: Using our custom Game engine
+          if (typeof window.initGame === "function") {
+            window.LoadDebug.log("Using custom Game engine initialization");
+
+            // Get civilization from URL parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedCiv = urlParams.get("civ") || "solari"; // Default to Solari if not specified
+
+            // Initialize the custom game
+            window.gameInstance = window.initGame(selectedCiv);
+            return;
+          }
+
+          // Method 2: Using Phaser (fallback if custom init not found)
+          if (typeof Phaser !== "undefined") {
+            window.LoadDebug.log(
+              "Custom Game engine not found, falling back to Phaser"
+            );
+
+            // Ensure Phaser is defined
+            if (typeof Phaser === "undefined") {
+              window.LoadDebug.error("Phaser is not loaded!");
+              return;
+            }
+
+            window.LoadDebug.log("Starting Phaser game initialization");
+
+            // Check if we have module exports from a separate game.js file
+            if (
+              Object.keys(window).some(
+                (key) => key.includes("__") && key.includes("game.js")
+              )
+            ) {
+              window.LoadDebug.log("Using ES module exports for Phaser scene");
+
+              // Find the game.js module export
+              const moduleKey = Object.keys(window).find(
+                (key) => key.includes("__") && key.includes("game.js")
+              );
+              const module = window[moduleKey];
+
+              // Phaser game configuration
+              const gameConfig = {
+                type: Phaser.AUTO,
+                width: canvas.width,
+                height: canvas.height,
+                parent: "game-canvas",
+                physics: {
+                  default: "arcade",
+                  arcade: {
+                    gravity: { y: 0 },
+                    debug: false,
+                  },
+                },
+                scene: {
+                  key: "MainScene",
+                  preload: module.preload || function () {},
+                  create: module.create || function () {},
+                  update: module.update || function () {},
+                },
+              };
+
+              // Start the Phaser game
+              window.LoadDebug.log("Starting Phaser game");
+              window.game = new Phaser.Game(gameConfig);
+            } else {
+              window.LoadDebug.error(
+                "No game.js module exports found for Phaser"
+              );
+
+              // Create a minimal Phaser game as fallback
+              const gameConfig = {
+                type: Phaser.AUTO,
+                width: canvas.width,
+                height: canvas.height,
+                parent: "game-canvas",
+                scene: {
+                  create: function () {
+                    this.add.text(20, 20, "Empires of Eternity", {
+                      fontSize: "32px",
+                      fill: "#fff",
+                    });
+                    this.add.text(20, 60, "Game initialized in fallback mode", {
+                      fontSize: "18px",
+                      fill: "#fff",
+                    });
+                  },
+                },
+              };
+
+              window.game = new Phaser.Game(gameConfig);
+            }
+          } else {
+            window.LoadDebug.error(
+              "Neither custom Game engine nor Phaser found!"
+            );
+          }
+        } catch (err) {
+          window.LoadDebug.error("Game initialization failed: " + err.message);
+          console.error("Failed to initialize game:", err);
+        }
+      }
+
+      // Start loading all scripts
+      loadAllScripts();
+    </script>
+
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background-color: #000;
+        font-family: Arial, sans-serif;
+      }
+
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      .loading-container {
+        text-align: center;
+        color: #ffd700; /* Gold color for Solari theme */
+      }
+
+      #loading-status {
+        margin-top: 10px;
+        font-family: monospace;
+        height: 20px;
+      }
+
+      .progress-bar {
+        width: 300px;
+        height: 20px;
+        background-color: #333;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px auto;
+      }
+
+      .progress {
+        height: 100%;
+        background-color: #ffd700;
+        width: 0%;
+        transition: width 0.3s ease-in-out;
+      }
+
+      #game-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #game-canvas {
+        display: block;
+        background-color: #000;
+        width: 100%;
+        height: 100%;
+      }
+
+      #resources,
+      #entity-info,
+      #actions-panel,
+      #messages,
+      #age-display,
+      #selection-info {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px;
+        font-family: Arial, sans-serif;
+        z-index: 100;
+        border-radius: 5px;
+        border: 1px solid #333;
+      }
+
+      #resources {
+        top: 10px;
+        left: 10px;
+        display: flex;
+        gap: 10px;
+      }
+
+      #age-display {
+        top: 10px;
+        right: 10px;
+        color: #ffd700;
+        font-weight: bold;
+      }
+
+      #entity-info {
+        top: 40px;
+        left: 10px;
+        min-width: 200px;
+      }
+
+      #actions-panel {
+        top: 100px;
+        left: 10px;
+      }
+
+      #messages {
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        min-width: 300px;
+      }
+
+      #selection-info {
+        bottom: 10px;
+        left: 10px;
+        min-width: 200px;
+      }
+
+      #minimap {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 200px;
+        height: 200px;
+        background-color: rgba(0, 0, 0, 0.7);
+        border: 1px solid #ffd700;
+        z-index: 100;
+      }
+
+      button {
+        margin: 2px;
+        padding: 5px;
+        background-color: #444;
+        color: white;
+        border: 1px solid #666;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #555;
+        border-color: #ffd700;
+      }
+
+      .resource {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .resource-icon {
+        width: 16px;
+        height: 16px;
+        background-color: #333;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 12px;
+      }
+
+      /* Resource Colors */
+      .wood {
+        color: #a0522d;
+      }
+      .food {
+        color: #32cd32;
+      }
+      .gold {
+        color: #ffd700;
+      }
+      .stone {
+        color: #c0c0c0;
+      }
+      .iron {
+        color: #708090;
+      }
+
+      /* Day/Night Effects */
+      .day-overlay,
+      .night-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 50;
+        opacity: 0;
+        transition: opacity 2s ease-in-out;
+      }
+
+      .day-overlay {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .night-overlay {
+        background-color: rgba(0, 0, 51, 0.3);
+      }
+    </style>
+
+    <!-- Debug Script - Load Last -->
+    <script src="js/game-debug.js"></script>
+  </body>
+</html>

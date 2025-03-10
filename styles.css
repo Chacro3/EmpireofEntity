@@ -1,0 +1,1143 @@
+/* Empires of Eternity - Main Stylesheet
+   A clean, minimalist design for the strategy game interface */
+
+/* Base Styles & Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Color Palette */
+  --bg-dark: #1a1a1a;
+  --bg-medium: #2a2a2a;
+  --bg-light: #3a3a3a;
+  --text-primary: #f0f0f0;
+  --text-secondary: #aaaaaa;
+  --accent-gold: #d4af37;
+  --accent-blue: #4a6fa5;
+  --wood-color: #b08d57;
+  --food-color: #7cb342;
+  --gold-color: #ffd700;
+  --stone-color: #9e9e9e;
+  --iron-color: #78909c;
+  --border-color: #444;
+  --button-hover: #4a4a4a;
+  --button-active: #606060;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+
+  /* Border radius */
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
+}
+
+body {
+  font-family: "Segoe UI", "Arial", sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.4;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 1.5rem;
+  color: var(--accent-gold);
+}
+
+h3 {
+  font-size: 1rem;
+  margin-bottom: var(--space-sm);
+  color: var(--accent-gold);
+}
+
+/* Header */
+header {
+  background-color: var(--bg-medium);
+  padding: var(--space-sm) var(--space-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  height: 48px;
+}
+
+/* Main Layout */
+#game-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Canvas Area */
+#canvas-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#gameCanvas {
+  background-color: #000;
+  cursor: pointer;
+  display: block;
+}
+
+/* Sidebar */
+#sidebar {
+  width: 300px;
+  background-color: var(--bg-medium);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border-color);
+}
+
+/* Resource Display */
+#resources {
+  display: flex;
+  flex-wrap: wrap;
+  padding: var(--space-md);
+  background-color: var(--bg-light);
+  font-size: 0.875rem;
+  gap: var(--space-md);
+}
+
+#resources span {
+  display: flex;
+  align-items: center;
+}
+
+.resource-wood {
+  color: var(--wood-color);
+}
+.resource-food {
+  color: var(--food-color);
+}
+.resource-gold {
+  color: var(--gold-color);
+}
+.resource-stone {
+  color: var(--stone-color);
+}
+.resource-iron {
+  color: var(--iron-color);
+}
+
+/* Age indicator */
+#age-indicator {
+  padding: var(--space-xs) var(--space-md);
+  background-color: var(--bg-dark);
+  color: var(--accent-gold);
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Villager capacity display */
+#villager-capacity {
+  padding: var(--space-xs) var(--space-md);
+  background-color: var(--bg-dark);
+  font-size: 0.875rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Unit info */
+#unit-info {
+  padding: var(--space-md);
+  flex: 1;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.875rem;
+}
+
+.entity-info,
+.group-info {
+  background-color: var(--bg-light);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+/* Control panels */
+#controls {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.control-group {
+  margin-bottom: var(--space-md);
+}
+
+.control-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+#build-buttons,
+#unit-buttons,
+#formation-buttons,
+#command-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+button {
+  padding: var(--space-xs) var(--space-md);
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  min-width: 80px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button:hover {
+  background-color: var(--button-hover);
+  border-color: var(--accent-blue);
+}
+
+button:active {
+  background-color: var(--button-active);
+}
+
+button.primary {
+  background-color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+button.primary:hover {
+  background-color: #5a7fb5;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Tech tree */
+#tech-tree {
+  padding: var(--space-md);
+  border-top: 1px solid var(--border-color);
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 0.875rem;
+}
+
+.tech-list,
+.researched-techs {
+  list-style: none;
+  margin-top: var(--space-sm);
+}
+
+.tech-list li {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-xs);
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: background-color 0.2s;
+}
+
+.tech-list li:hover {
+  background-color: var(--bg-light);
+}
+
+.tech-cost {
+  margin-left: var(--space-sm);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.tech-unavailable {
+  opacity: 0.6;
+}
+
+.tech-researched {
+  color: var(--food-color);
+}
+
+.tech-desc {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+}
+
+/* Minimap */
+#minimap-container {
+  padding: var(--space-md);
+  background-color: var(--bg-light);
+  display: flex;
+  justify-content: center;
+  border-top: 1px solid var(--border-color);
+}
+
+#minimap {
+  width: 280px;
+  height: 186px;
+  background-color: #000;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+/* Alert system */
+#alerts {
+  position: absolute;
+  top: var(--space-lg);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  pointer-events: none;
+  z-index: 100;
+}
+
+.alert {
+  padding: var(--space-xs) var(--space-md);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  animation: fadeOut 3s forwards;
+  font-size: 0.875rem;
+  max-width: 100%;
+  text-align: center;
+}
+
+.alert.important {
+  background-color: rgba(180, 0, 0, 0.8);
+  font-weight: 600;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Victory/defeat screen */
+.game-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.victory {
+  background-color: rgba(0, 70, 0, 0.7);
+}
+
+.defeat {
+  background-color: rgba(70, 0, 0, 0.7);
+}
+
+.overlay-content {
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: var(--space-lg) var(--space-lg) * 1.5;
+  border-radius: var(--radius-lg);
+  text-align: center;
+  max-width: 500px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--border-color);
+}
+
+.overlay-content h1 {
+  font-size: 2.25rem;
+  margin-bottom: var(--space-lg);
+}
+
+.overlay-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-lg);
+  color: var(--text-secondary);
+}
+
+.victory-stats {
+  text-align: left;
+  margin: var(--space-lg) 0;
+  padding: var(--space-md);
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--button-hover);
+}
+
+/* Tooltips */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltip-text {
+  visibility: hidden;
+  width: 200px;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  text-align: center;
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-md);
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  font-size: 0.75rem;
+  pointer-events: none;
+  border: 1px solid var(--border-color);
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1024px) {
+  #game-container {
+    flex-direction: column;
+  }
+
+  #sidebar {
+    width: 100%;
+    height: 40%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-y: scroll;
+  }
+
+  #resources,
+  #age-indicator,
+  #unit-info,
+  #controls,
+  #tech-tree,
+  #minimap-container {
+    width: 50%;
+  }
+
+  #resources,
+  #unit-info {
+    height: 150px;
+    overflow-y: auto;
+  }
+
+  #controls {
+    height: auto;
+  }
+
+  button {
+    height: 28px;
+    min-width: 70px;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --space-xs: 3px;
+    --space-sm: 6px;
+    --space-md: 10px;
+    --space-lg: 14px;
+  }
+
+  header h1 {
+    font-size: 1.2rem;
+  }
+
+  header {
+    padding: var(--space-xs) var(--space-md);
+    height: 40px;
+  }
+
+  #resources {
+    font-size: 0.75rem;
+  }
+
+  button {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.75rem;
+    min-width: 60px;
+    height: 26px;
+  }
+
+  #resources,
+  #age-indicator,
+  #unit-info,
+  #controls,
+  #tech-tree,
+  #minimap-container {
+    width: 100%;
+    height: auto;
+  }
+
+  #sidebar {
+    height: 50%;
+  }
+}
+/* Landing Page & Civilization Selection Styles
+   To be added to your existing styles.css */
+
+/* Landing Page Styles */
+.landing-page,
+.select-page {
+  /* Override body styles for these special pages */
+  overflow: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #1a1a1a, #2a2a2a);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.landing-container {
+  max-width: 900px;
+  background-color: var(--bg-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: var(--space-lg);
+  margin: 40px auto;
+  border: 1px solid var(--border-color);
+}
+
+.landing-container h1 {
+  font-size: 2.5rem;
+  color: var(--accent-gold);
+  text-align: center;
+  margin-bottom: var(--space-md);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tagline {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  margin-bottom: var(--space-lg);
+  letter-spacing: 2px;
+}
+
+.landing-content {
+  padding: var(--space-md);
+}
+
+.landing-content p {
+  line-height: 1.6;
+  margin-bottom: var(--space-lg);
+  text-align: center;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.features-section,
+.how-to-play {
+  margin-bottom: var(--space-lg);
+}
+
+.features-section h2,
+.how-to-play h2 {
+  font-size: 1.5rem;
+  color: var(--accent-gold);
+  margin-bottom: var(--space-md);
+  text-align: center;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-md);
+}
+
+.feature-list li {
+  display: flex;
+  align-items: flex-start;
+  padding: var(--space-md);
+  background-color: var(--bg-light);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feature-list li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  margin-right: var(--space-md);
+  line-height: 1;
+}
+
+.feature-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-details strong {
+  display: block;
+  margin-bottom: var(--space-xs);
+  color: var(--accent-gold);
+}
+
+.feature-details span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.how-to-play ol {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-left: 2rem;
+}
+
+.how-to-play li {
+  margin-bottom: var(--space-md);
+  line-height: 1.5;
+}
+
+.start-options {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+
+.start-options button {
+  padding: var(--space-sm) var(--space-lg);
+  min-width: 160px;
+  height: 46px;
+  font-size: 1rem;
+}
+
+.tutorial-panel {
+  background-color: var(--bg-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-top: var(--space-lg);
+  border: 1px solid var(--border-color);
+}
+
+.tutorial-panel h3 {
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+
+.tutorial-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.tutorial-step {
+  display: flex;
+  align-items: flex-start;
+}
+
+.step-number {
+  background-color: var(--accent-gold);
+  color: var(--bg-dark);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  margin-right: var(--space-md);
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-content strong {
+  display: block;
+  margin-bottom: var(--space-xs);
+}
+
+.step-content p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: left;
+}
+
+.footer-note {
+  margin-top: var(--space-lg);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Civilization Selection Styles */
+.select-container {
+  max-width: 1100px;
+  background-color: var(--bg-medium);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: var(--space-lg);
+  margin: 40px auto;
+  border: 1px solid var(--border-color);
+}
+
+.select-container h1 {
+  font-size: 2.2rem;
+  color: var(--accent-gold);
+  text-align: center;
+  margin-bottom: var(--space-sm);
+}
+
+.select-subtitle {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+.civ-options {
+  display: flex;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.civ-card {
+  flex: 1;
+  display: flex;
+  background-color: var(--bg-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.civ-card.highlighted {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border-color: var(--accent-gold);
+}
+
+.civ-emblem {
+  width: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-lg);
+}
+
+.solari-emblem {
+  background: linear-gradient(135deg, #a67c00, #ffd700);
+}
+
+.lunari-emblem {
+  background: linear-gradient(135deg, #757575, #c0c0c0);
+}
+
+.civ-logo {
+  width: 150px;
+  height: 150px;
+}
+
+.civ-details {
+  flex: 1;
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+}
+
+.civ-details h2 {
+  color: var(--text-primary);
+  margin-bottom: var(--space-xs);
+  font-size: 1.4rem;
+}
+
+.civ-theme {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: var(--space-md);
+  font-size: 0.9rem;
+}
+
+.civ-perks h3,
+.civ-units h3 {
+  font-size: 1rem;
+  color: var(--accent-gold);
+  margin-bottom: var(--space-xs);
+}
+
+.civ-perks {
+  margin-bottom: var(--space-md);
+}
+
+.civ-perks ul {
+  list-style: none;
+  padding-left: var(--space-md);
+}
+
+.civ-perks li {
+  margin-bottom: var(--space-xs);
+  position: relative;
+  font-size: 0.9rem;
+}
+
+.civ-perks li:before {
+  content: "•";
+  position: absolute;
+  left: -15px;
+  color: var(--accent-gold);
+}
+
+.unit-list {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-xs);
+}
+
+.unit-item {
+  background-color: var(--bg-medium);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.unit-icon {
+  margin-right: var(--space-xs);
+}
+
+.civ-select-button {
+  margin-top: auto;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 1rem;
+}
+
+.select-footer {
+  text-align: center;
+  margin-top: var(--space-lg);
+}
+
+.back-button {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.back-button:hover {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+}
+
+@media (max-width: 900px) {
+  .civ-options {
+    flex-direction: column;
+  }
+
+  .feature-list {
+    grid-template-columns: 1fr;
+  }
+
+  .start-options {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 700px) {
+  .civ-card {
+    flex-direction: column;
+  }
+
+  .civ-emblem {
+    width: 100%;
+    padding: var(--space-md);
+  }
+
+  .civ-logo {
+    width: 100px;
+    height: 100px;
+  }
+}
+/* Game Loader and Options Styles
+   Add these to your styles.css file */
+
+/* Game Loader */
+#game-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(3px);
+  transition: opacity 0.3s;
+}
+
+.loader-content {
+  background-color: var(--bg-medium);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid var(--border-color);
+}
+
+.loader-spinner {
+  width: 60px;
+  height: 60px;
+  border: 5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  border-top-color: var(--accent-gold);
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: var(--space-md);
+}
+
+.loader-text {
+  color: var(--text-primary);
+  font-size: 1.2rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error Message */
+#game-error {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(3px);
+}
+
+.error-content {
+  background-color: var(--bg-medium);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #b71c1c;
+  max-width: 400px;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+}
+
+.error-text {
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  margin-bottom: var(--space-lg);
+}
+
+.error-button {
+  padding: var(--space-sm) var(--space-lg);
+  min-width: 120px;
+  font-size: 1rem;
+}
+
+/* Game Options Panel */
+.game-options-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+  backdrop-filter: blur(3px);
+}
+
+.options-content {
+  background-color: var(--bg-medium);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  width: 400px;
+  max-width: 90%;
+  border: 1px solid var(--border-color);
+}
+
+.options-content h2 {
+  color: var(--accent-gold);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-lg);
+  text-align: center;
+}
+
+.option-group {
+  margin-bottom: var(--space-md);
+}
+
+.option-group label {
+  display: block;
+  margin-bottom: var(--space-xs);
+  color: var(--text-primary);
+}
+
+.option-group select,
+.option-group input[type="range"] {
+  width: 100%;
+  padding: var(--space-xs) var(--space-sm);
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.option-buttons {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+  justify-content: center;
+}
+
+.option-buttons button {
+  min-width: 100px;
+}
+
+.extra-buttons {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.extra-buttons button {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.extra-buttons button:hover {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+}
+
+/* Civilization-specific UI Colors */
+.solari-age {
+  color: var(--accent-gold);
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+.lunari-age {
+  color: #c0c0c0;
+  border-bottom: 2px solid #c0c0c0;
+}
+
+.civ-name {
+  font-weight: bold;
+}
+
+/* Options Button */
+.options-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.options-button:hover {
+  background-color: var(--bg-light);
+  color: var(--text-primary);
+}
+
+/* Make checkbox more visible */
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent-gold);
+}

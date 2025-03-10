@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Empires of Eternity - Choose Civilization</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="select-page">
+    <div class="select-container">
+      <h1>Choose Your Civilization</h1>
+      <p class="select-subtitle">
+        Select your empire and begin your journey to eternity!
+      </p>
+
+      <div class="civ-options">
+        <div class="civ-card" id="solari-card">
+          <div class="civ-emblem solari-emblem">
+            <div class="civ-logo">
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="35" fill="#ffd700" />
+                <circle cx="50" cy="50" r="25" fill="#ffb700" />
+                <path
+                  d="M50 15 L55 30 L70 30 L60 40 L65 55 L50 45 L35 55 L40 40 L30 30 L45 30 Z"
+                  fill="#fff"
+                />
+              </svg>
+            </div>
+          </div>
+          <div class="civ-details">
+            <h2>Solari Empire</h2>
+            <div class="civ-theme">
+              Sun-worshipping desert empire focused on engineering and trade
+            </div>
+
+            <div class="civ-perks">
+              <h3>Perks</h3>
+              <ul>
+                <li>
+                  <strong>Solar Efficiency:</strong> 20% faster resource
+                  gathering
+                </li>
+                <li><strong>Sun's Blessing:</strong> Bonus during daytime</li>
+                <li>
+                  <strong>Desert Engineering:</strong> 10% reduced wood cost for
+                  buildings
+                </li>
+              </ul>
+            </div>
+
+            <div class="civ-units">
+              <h3>Unique Units</h3>
+              <div class="unit-list">
+                <div class="unit-item">
+                  <span class="unit-icon">🛡️</span>
+                  <span>Sun Knight</span>
+                </div>
+                <div class="unit-item">
+                  <span class="unit-icon">🏹</span>
+                  <span>Archer</span>
+                </div>
+                <div class="unit-item">
+                  <span class="unit-icon">👑</span>
+                  <span>Sun King (Hero)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Direct link to game.html with civilization parameter -->
+            <button
+              class="civ-select-button primary"
+              onclick="window.location.href='game.html?civ=solari'"
+            >
+              Start as Solari
+            </button>
+          </div>
+        </div>
+
+        <div class="civ-card" id="lunari-card">
+          <div class="civ-emblem lunari-emblem">
+            <div class="civ-logo">
+              <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="35" fill="#c0c0c0" />
+                <path
+                  d="M50 15 A35 35 0 0 1 50 85 A35 35 0 0 0 50 15"
+                  fill="#9e9e9e"
+                />
+                <circle cx="35" cy="35" r="7" fill="#f0f0f0" />
+                <circle cx="65" cy="55" r="5" fill="#f0f0f0" />
+                <circle cx="45" cy="65" r="4" fill="#f0f0f0" />
+              </svg>
+            </div>
+          </div>
+          <div class="civ-details">
+            <h2>Lunari Confederation</h2>
+            <div class="civ-theme">
+              Moon-venerating forest civilization emphasizing mysticism and
+              agility
+            </div>
+
+            <div class="civ-perks">
+              <h3>Perks</h3>
+              <ul>
+                <li>
+                  <strong>Lunar Agility:</strong> 25% faster soldier training
+                </li>
+                <li>
+                  <strong>Night's Embrace:</strong> Bonus during nighttime
+                </li>
+                <li>
+                  <strong>Forest Dwellers:</strong> 10% faster villager movement
+                </li>
+              </ul>
+            </div>
+
+            <div class="civ-units">
+              <h3>Unique Units</h3>
+              <div class="unit-list">
+                <div class="unit-item">
+                  <span class="unit-icon">🗡️</span>
+                  <span>Skirmisher</span>
+                </div>
+                <div class="unit-item">
+                  <span class="unit-icon">🏹</span>
+                  <span>Hunter</span>
+                </div>
+                <div class="unit-item">
+                  <span class="unit-icon">🌙</span>
+                  <span>Moon Priestess (Hero)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Direct link to game.html with civilization parameter -->
+            <button
+              class="civ-select-button primary"
+              onclick="window.location.href='game.html?civ=lunari'"
+            >
+              Start as Lunari
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="select-footer">
+        <button
+          class="back-button"
+          onclick="window.location.href='landing.html'"
+        >
+          Back to Main Menu
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Card highlighting functionality
+      document
+        .getElementById("solari-card")
+        .addEventListener("mouseover", function () {
+          this.classList.add("highlighted");
+        });
+      document
+        .getElementById("solari-card")
+        .addEventListener("mouseout", function () {
+          this.classList.remove("highlighted");
+        });
+
+      document
+        .getElementById("lunari-card")
+        .addEventListener("mouseover", function () {
+          this.classList.add("highlighted");
+        });
+      document
+        .getElementById("lunari-card")
+        .addEventListener("mouseout", function () {
+          this.classList.remove("highlighted");
+        });
+    </script>
+  </body>
+</html>

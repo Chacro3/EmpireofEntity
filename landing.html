@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Empires of Eternity - Landing</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="landing-page">
+    <div class="landing-container">
+      <h1>Empires of Eternity</h1>
+      <div class="tagline">Build • Conquer • Advance</div>
+
+      <div class="landing-content">
+        <p>
+          Welcome to <strong>Empires of Eternity</strong>, a captivating
+          real-time strategy game where you build and lead a civilization
+          through five epic ages—Stone, Bronze, Iron, Golden, and Eternal.
+          Conquer through military might or economic dominance in a land-based
+          world filled with diverse terrains and resources!
+        </p>
+
+        <div class="features-section">
+          <h2>Key Features</h2>
+          <ul class="feature-list">
+            <li>
+              <span class="feature-icon">⚒️</span>
+              <div class="feature-details">
+                <strong>Five Ages of Progress</strong>
+                <span>Advance from primitive tools to legendary wonders</span>
+              </div>
+            </li>
+            <li>
+              <span class="feature-icon">👑</span>
+              <div class="feature-details">
+                <strong>Unique Civilizations</strong>
+                <span
+                  >Choose between Solari and Lunari with distinct
+                  strengths</span
+                >
+              </div>
+            </li>
+            <li>
+              <span class="feature-icon">🌲</span>
+              <div class="feature-details">
+                <strong>Rich Resource Management</strong>
+                <span
+                  >Gather Wood, Food, Gold, Stone, and Iron to fund your
+                  empire</span
+                >
+              </div>
+            </li>
+            <li>
+              <span class="feature-icon">⚔️</span>
+              <div class="feature-details">
+                <strong>Dynamic Combat</strong>
+                <span
+                  >Command villagers, soldiers, siege units, and heroes</span
+                >
+              </div>
+            </li>
+            <li>
+              <span class="feature-icon">🔍</span>
+              <div class="feature-details">
+                <strong>Strategic Tech Tree</strong>
+                <span>Unlock powerful upgrades and special abilities</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="how-to-play">
+          <h2>How to Play</h2>
+          <ol>
+            <li>Select your civilization and start the game</li>
+            <li>Gather resources with villagers and build structures</li>
+            <li>Train an army and research technologies</li>
+            <li>Advance through ages to unlock more powerful units</li>
+            <li>Achieve victory by destroying enemies or amassing wealth!</li>
+          </ol>
+        </div>
+
+        <div class="start-options">
+          <button
+            class="primary"
+            onclick="window.location.href='select-civ.html'"
+          >
+            Begin Your Empire
+          </button>
+          <button onclick="toggleTutorial()">View Tutorial</button>
+        </div>
+      </div>
+
+      <div id="tutorial" class="tutorial-panel" style="display: none">
+        <h3>Quick Tutorial</h3>
+        <div class="tutorial-steps">
+          <div class="tutorial-step">
+            <span class="step-number">1</span>
+            <div class="step-content">
+              <strong>Gather Resources</strong>
+              <p>
+                Select villagers and right-click on resource nodes to gather
+                wood, food, gold, stone, or iron.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-step">
+            <span class="step-number">2</span>
+            <div class="step-content">
+              <strong>Build Structures</strong>
+              <p>
+                Click on the Build button, select a structure, and place it on
+                the map. Villagers will construct it.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-step">
+            <span class="step-number">3</span>
+            <div class="step-content">
+              <strong>Train Units</strong>
+              <p>
+                Click on barracks or other military buildings to train soldiers,
+                siege units, and heroes.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-step">
+            <span class="step-number">4</span>
+            <div class="step-content">
+              <strong>Research Technologies</strong>
+              <p>
+                Open the Tech Tree tab to research technologies that enhance
+                your civilization.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-step">
+            <span class="step-number">5</span>
+            <div class="step-content">
+              <strong>Age Advancement</strong>
+              <p>
+                Build required structures and gather resources to advance to the
+                next age.
+              </p>
+            </div>
+          </div>
+        </div>
+        <button onclick="toggleTutorial()">Close Tutorial</button>
+      </div>
+
+      <div class="footer-note">
+        <p>Version 1.0 - Created by Your Empire Studios</p>
+      </div>
+    </div>
+
+    <script>
+      function toggleTutorial() {
+        const tutorial = document.getElementById("tutorial");
+        if (tutorial.style.display === "none") {
+          tutorial.style.display = "block";
+        } else {
+          tutorial.style.display = "none";
+        }
+      }
+    </script>
+  </body>
+</html>
