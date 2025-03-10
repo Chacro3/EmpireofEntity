@@ -6,8 +6,13 @@
     <title>Empires of Eternity</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="animations.css" />
+    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="ui.css" />
     <!-- Load Phaser library -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <!-- Load Howler.js for audio -->
+    <script src="howler.js"></script>
   </head>
   <body>
     <!-- Loading Screen -->
@@ -74,7 +79,7 @@
 
       // Track loading progress
       let loadedScripts = 0;
-      const totalScripts = 39; // Updated to include all scripts
+      const totalScripts = 40; // Updated to include all scripts including asset-loader.js
       const loadedScriptNames = [];
 
       // Update the loading progress bar
@@ -126,7 +131,9 @@
         try {
           window.LoadDebug.log("Starting script loading sequence");
 
-          // Core files
+          // Core files - load asset-loader first for fallback handling
+          await loadScript("js/core/asset-loader.js");
+          await loadScript("utils.js");
           await loadScript("js/core/utils.js");
           await loadScript("js/core/audio.js");
           await loadScript("js/core/input.js");
@@ -147,6 +154,8 @@
           await loadScript("js/entities/wall.js");
           await loadScript("js/entities/wonder.js");
           await loadScript("js/entities/entity-manager.js");
+          await loadScript("js/entities/villager.js");
+          await loadScript("js/entities/entity-classes.js");
 
           // Mechanics files - load resource-system first as it may be needed by others
           await loadScript("js/mechanics/resource-system.js");
@@ -164,6 +173,7 @@
           await loadScript("js/civilizations/civilization.js");
           await loadScript("js/civilizations/solari.js");
           await loadScript("js/civilizations/lunari.js");
+          await loadScript("js/civilizations/civilization-manager.js");
 
           // UI files
           await loadScript("js/ui/ui-manager.js");
@@ -182,12 +192,7 @@
           // Game engine and main
           await loadScript("js/game-engine.js");
           await loadScript("js/main.js");
-
-          // No need to load these as root-level files if they're already in subdirectories
-          // await loadScript("game.js", true);
-          // await loadScript("entity.js", true);
-          // await loadScript("villager.js", true);
-          // await loadScript("resource-system.js", true);
+          await loadScript("js/game-debug.js");
 
           window.LoadDebug.log("All scripts loaded successfully!");
         } catch (error) {
@@ -210,6 +215,18 @@
             return;
           }
 
+          // Debug rendering to confirm canvas works
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#224488';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'white';
+          ctx.font = '30px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Initializing Empire of Entity...', canvas.width/2, canvas.height/2 - 50);
+          ctx.font = '16px Arial';
+          ctx.fillText('Check console for debugging information', canvas.width/2, canvas.height/2 + 50);
+          console.log("Canvas rendered with debug visuals");
+
           canvas.width = window.CONFIG
             ? window.CONFIG.CANVAS.WIDTH || 1280
             : 1280;
@@ -219,6 +236,12 @@
           window.LoadDebug.log(
             `Canvas size set to ${canvas.width}x${canvas.height}`
           );
+
+          // Initialize asset loader if available
+          if (window.AssetLoader) {
+            window.assetLoader = new AssetLoader();
+            window.LoadDebug.log("Asset loader initialized");
+          }
 
           // Hide loading screen, show game
           document.getElementById("loading-screen").style.display = "none";
@@ -303,15 +326,24 @@
                 height: canvas.height,
                 parent: "game-canvas",
                 scene: {
+                  preload: function () {
+                    this.load.image(
+                      "logo",
+                      "assets/logo.png"
+                    );
+                  },
                   create: function () {
-                    this.add.text(20, 20, "Empires of Eternity", {
-                      fontSize: "32px",
-                      fill: "#fff",
-                    });
-                    this.add.text(20, 60, "Game initialized in fallback mode", {
-                      fontSize: "18px",
-                      fill: "#fff",
-                    });
+                    this.add.image(canvas.width / 2, canvas.height / 2, "logo");
+                    this.add.text(
+                      canvas.width / 2,
+                      canvas.height / 2 + 100,
+                      "Game Engine Initialization Error",
+                      {
+                        font: "24px Arial",
+                        fill: "#ffffff",
+                        align: "center",
+                      }
+                    ).setOrigin(0.5);
                   },
                 },
               };
@@ -320,227 +352,27 @@
             }
           } else {
             window.LoadDebug.error(
-              "Neither custom Game engine nor Phaser found!"
+              "No game engine found! Neither custom nor Phaser."
             );
           }
-        } catch (err) {
-          window.LoadDebug.error("Game initialization failed: " + err.message);
-          console.error("Failed to initialize game:", err);
+        } catch (error) {
+          window.LoadDebug.error("Game initialization error: " + error.message);
+          console.error("Game initialization error:", error);
         }
       }
 
-      // Start loading all scripts
-      loadAllScripts();
+      // Start loading scripts when the document is ready
+      document.addEventListener("DOMContentLoaded", loadAllScripts);
     </script>
 
-    <style>
-      body,
-      html {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background-color: #000;
-        font-family: Arial, sans-serif;
-      }
-
-      #loading-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: #000;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-      }
-
-      .loading-container {
-        text-align: center;
-        color: #ffd700; /* Gold color for Solari theme */
-      }
-
-      #loading-status {
-        margin-top: 10px;
-        font-family: monospace;
-        height: 20px;
-      }
-
-      .progress-bar {
-        width: 300px;
-        height: 20px;
-        background-color: #333;
-        border-radius: 10px;
-        overflow: hidden;
-        margin: 10px auto;
-      }
-
-      .progress {
-        height: 100%;
-        background-color: #ffd700;
-        width: 0%;
-        transition: width 0.3s ease-in-out;
-      }
-
-      #game-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-      }
-
-      #game-canvas {
-        display: block;
-        background-color: #000;
-        width: 100%;
-        height: 100%;
-      }
-
-      #resources,
-      #entity-info,
-      #actions-panel,
-      #messages,
-      #age-display,
-      #selection-info {
-        position: absolute;
-        background: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 5px;
-        font-family: Arial, sans-serif;
-        z-index: 100;
-        border-radius: 5px;
-        border: 1px solid #333;
-      }
-
-      #resources {
-        top: 10px;
-        left: 10px;
-        display: flex;
-        gap: 10px;
-      }
-
-      #age-display {
-        top: 10px;
-        right: 10px;
-        color: #ffd700;
-        font-weight: bold;
-      }
-
-      #entity-info {
-        top: 40px;
-        left: 10px;
-        min-width: 200px;
-      }
-
-      #actions-panel {
-        top: 100px;
-        left: 10px;
-      }
-
-      #messages {
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        text-align: center;
-        min-width: 300px;
-      }
-
-      #selection-info {
-        bottom: 10px;
-        left: 10px;
-        min-width: 200px;
-      }
-
-      #minimap {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        width: 200px;
-        height: 200px;
-        background-color: rgba(0, 0, 0, 0.7);
-        border: 1px solid #ffd700;
-        z-index: 100;
-      }
-
-      button {
-        margin: 2px;
-        padding: 5px;
-        background-color: #444;
-        color: white;
-        border: 1px solid #666;
-        border-radius: 3px;
-        cursor: pointer;
-      }
-
-      button:hover {
-        background-color: #555;
-        border-color: #ffd700;
-      }
-
-      .resource {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-
-      .resource-icon {
-        width: 16px;
-        height: 16px;
-        background-color: #333;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 12px;
-      }
-
-      /* Resource Colors */
-      .wood {
-        color: #a0522d;
-      }
-      .food {
-        color: #32cd32;
-      }
-      .gold {
-        color: #ffd700;
-      }
-      .stone {
-        color: #c0c0c0;
-      }
-      .iron {
-        color: #708090;
-      }
-
-      /* Day/Night Effects */
-      .day-overlay,
-      .night-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 50;
-        opacity: 0;
-        transition: opacity 2s ease-in-out;
-      }
-
-      .day-overlay {
-        background-color: rgba(255, 255, 255, 0.1);
-      }
-
-      .night-overlay {
-        background-color: rgba(0, 0, 51, 0.3);
-      }
-    </style>
-
-    <!-- Debug Script - Load Last -->
-    <script src="js/game-debug.js"></script>
+    <!-- Debug Panel (only shown when DEBUG_MODE is true) -->
+    <div id="debug-panel" style="display: none">
+      <div class="debug-header">Debug Panel</div>
+      <div class="debug-content"></div>
+      <div class="debug-footer">
+        <button id="debug-toggle-panel">Hide</button>
+        <button id="debug-clear">Clear</button>
+      </div>
+    </div>
   </body>
 </html>

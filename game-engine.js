@@ -4,7 +4,7 @@
  */
 
 class GameEngine {
-  constructor() {
+  constructor(config = {}) {
     // Game systems
     this.systems = {};
 
@@ -27,6 +27,42 @@ class GameEngine {
 
     // Events system
     this.events = {};
+
+    // Canvas and context
+    this.canvas = document.getElementById('game-canvas');
+    this.ctx = this.canvas.getContext('2d');
+    
+    // Map size and view
+    this.mapSize = { width: 2000, height: 2000 };
+    this.viewPort = { 
+        x: 0, 
+        y: 0, 
+        width: this.canvas.width, 
+        height: this.canvas.height 
+    };
+    
+    // Game time tracking
+    this.gameTime = 0;
+    this.dayNightCycle = {
+        currentTime: 0,
+        dayLength: 300, // 5 minutes per day/night cycle
+        isDay: true
+    };
+    
+    // Game state flags
+    this.paused = false;
+    this.debugMode = false;
+    
+    // Game speed (for fast-forward)
+    this.gameSpeed = 1.0;
+    
+    // Bind methods
+    this.update = this.update.bind(this);
+    this.render = this.render.bind(this);
+    this.gameLoop = this.gameLoop.bind(this);
+    
+    // Config
+    this.config = Object.assign({}, window.CONFIG || {}, config);
 
     console.log("Game Engine created");
   }

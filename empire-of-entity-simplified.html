@@ -1,0 +1,766 @@
+class SimpleMap {
+    constructor(width, height, game) {
+        this.game = game;
+        this.width = width || 2000;
+        this.height = height || 2000;
+        
+        // Initialize with a simple grid
+        this.terrainGrid = Array(Math.ceil(this.height / 50)).fill().map(() => 
+            Array(Math.ceil(this.width / 50)).fill('grass')
+        );
+    }
+    
+    generateMap() {
+        // Simple map with grass terrain
+        return this;
+    }
+    
+    update(deltaTime) {
+        // Nothing to update
+    }
+    
+    render(ctx, viewport) {
+        // Render a simple grid
+        ctx.fillStyle = '#1a4d1a'; // Dark green background
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        
+        // Draw grid lines
+        ctx.strokeStyle = '#2c662c'; // Slightly lighter green
+        ctx.lineWidth = 1;
+        
+        const gridSize = 50;
+        const offsetX = viewport.x % gridSize;
+        const offsetY = viewport.y % gridSize;
+        
+        // Draw vertical lines
+        for (let x = -offsetX; x < ctx.canvas.width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, ctx.canvas.height);
+            ctx.stroke();
+        }
+        
+        // Draw horizontal lines
+        for (let y = -offsetY; y < ctx.canvas.height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(ctx.canvas.width, y);
+            ctx.stroke();
+        }
+    }
+}
+
+// =====================================================
+// RESOURCE SYSTEM
+// =====================================================
+class ResourceSystem {
+    constructor(game) {
+        this.game = game;
+        this.resources = {};
+        
+        // Initialize resources for all players
+        this.initializeResources();
+    }
+    
+    initializeResources() {
+        // Set starting resources for each player
+        this.game.players.forEach(player => {
+            // Get civilization-specific bonuses
+            let woodBonus = 0;
+            let foodBonus = 0;
+            let goldBonus = 0;
+            let stoneBonus = 0;
+            
+            if (player.civilization === 'solari') {
+                foodBonus = 50; // Solari get extra food
+                goldBonus = 25; // And gold
+            } else if (player.civilization === 'lunari') {
+                woodBonus = 50; // Lunari get extra wood
+                stoneBonus = 25; // And stone
+            }
+            
+            this.resources[player.id] = {
+                food: 200 + foodBonus,
+                wood: 200 + woodBonus,
+                gold: 100 + goldBonus,
+                stone: 100 + stoneBonus,
+                population: 0,
+                populationCap: 10
+            };
+        });
+    }
+    
+    getResources(playerId) {
+        return this.resources[playerId] || null;
+    }
+    
+    modifyResource(playerId, resourceType, amount) {
+        if (!this.resources[playerId]) return false;
+        
+        this.resources[playerId][resourceType] += amount;
+        return true;
+    }
+    
+    update(deltaTime, game) {
+        // Update population counts
+        game.players.forEach(player => {
+            let populationCount = 0;
+            let populationCap = 5; // Base population cap
+            
+            // Count units and population capacity from buildings
+            game.entities.forEach(entity => {
+                if (entity.owner === player.id) {
+                    if (entity.type === 'unit') {
+                        populationCount++;
+                    } else if (entity.type === 'building' && entity.providesPopulation) {
+                        populationCap += entity.providesPopulation;
+                    }
+                }
+            });
+            
+            // Update population resources
+            this.resources[player.id].population = populationCount;
+            this.resources[player.id].populationCap = populationCap;
+        });
+    }
+}
+
+// =====================================================
+// UI MANAGER
+// =====================================================
+class UIManager {
+    constructor(game) {
+        this.game = game;
+        this.selectedEntities = [];
+        this.activeAction = null;
+        
+        // Layout dimensions
+        this.topBarHeight = 40;
+        this.minimapSize = 200;
+        this.selectionPanelHeight = 100;
+        
+        // UI buttons
+        this.buttons = [];
+    }
+    
+    update(deltaTime) {
+        // Nothing to update in the UI
+    }
+    
+    render(ctx) {
+        // Top resource bar
+        this.renderResourceBar(ctx);
+        
+        // Minimap
+        this.renderMinimap(ctx);
+        
+        // Selection panel if units are selected
+        if (this.selectedEntities.length > 0) {
+            this.renderSelectionPanel(ctx);
+        }
+        
+        // Action buttons
+        this.renderButtons(ctx);
+    }
+    
+    renderResourceBar(ctx) {
+        // Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, 0, ctx.canvas.width, this.topBarHeight);
+        
+        // Resources
+        const resources = this.game.resourceSystem.getResources(this.game.activePlayer.id);
+        if (resources) {
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText(`Food: ${Math.floor(resources.food)}`, 20, this.topBarHeight / 2);
+            ctx.fillText(`Wood: ${Math.floor(resources.wood)}`, 150, this.topBarHeight / 2);
+            ctx.fillText(`Gold: ${Math.floor(resources.gold)}`, 280, this.topBarHeight / 2);
+            ctx.fillText(`Stone: ${Math.floor(resources.stone)}`, 410, this.topBarHeight / 2);
+            ctx.fillText(`Population: ${resources.population}/${resources.populationCap}`, 540, this.topBarHeight / 2);
+        }
+    }
+    
+    renderMinimap(ctx) {
+        const x = ctx.canvas.width - this.minimapSize - 10;
+        const y = ctx.canvas.height - this.minimapSize - 10;
+        
+        // Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(x, y, this.minimapSize, this.minimapSize);
+        
+        // Map area
+        ctx.fillStyle = '#1a4d1a';
+        ctx.fillRect(x + 5, y + 5, this.minimapSize - 10, this.minimapSize - 10);
+        
+        // Entities
+        const minimapScale = (this.minimapSize - 10) / this.game.mapSize.width;
+        
+        this.game.entities.forEach(entity => {
+            const minimapX = x + 5 + entity.position.x * minimapScale;
+            const minimapY = y + 5 + entity.position.y * minimapScale;
+            
+            // Color based on owner
+            if (entity.owner === this.game.activePlayer.id) {
+                ctx.fillStyle = '#3498db'; // Blue for player
+            } else if (entity.owner !== null) {
+                ctx.fillStyle = '#e74c3c'; // Red for enemy
+            } else if (entity.type === 'resource') {
+                ctx.fillStyle = '#f1c40f'; // Yellow for resources
+            } else {
+                ctx.fillStyle = '#95a5a6'; // Gray for other entities
+            }
+            
+            // Size based on entity type
+            let dotSize = 2;
+            if (entity.type === 'building') dotSize = 4;
+            
+            ctx.fillRect(minimapX, minimapY, dotSize, dotSize);
+        });
+        
+        // Viewport indicator
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(
+            x + 5 + this.game.viewPort.x * minimapScale,
+            y + 5 + this.game.viewPort.y * minimapScale,
+            this.game.viewPort.width * minimapScale,
+            this.game.viewPort.height * minimapScale
+        );
+    }
+    
+    renderSelectionPanel(ctx) {
+        const panelY = ctx.canvas.height - this.selectionPanelHeight;
+        
+        // Background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(0, panelY, ctx.canvas.width, this.selectionPanelHeight);
+        
+        // Show selection info
+        if (this.selectedEntities.length > 0) {
+            const entity = this.selectedEntities[0];
+            
+            // Entity name
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            
+            let title = entity.name;
+            if (this.selectedEntities.length > 1) {
+                title += ` (${this.selectedEntities.length})`;
+            }
+            
+            ctx.fillText(title, 20, panelY + 15);
+            
+            // Health if available
+            if (entity.health !== undefined) {
+                const healthText = `Health: ${Math.floor(entity.health)}/${entity.maxHealth}`;
+                ctx.font = '14px Arial';
+                ctx.fillText(healthText, 20, panelY + 40);
+                
+                // Health bar
+                const healthWidth = 150;
+                const healthHeight = 10;
+                const healthX = 120;
+                const healthY = panelY + 40;
+                
+                // Background
+                ctx.fillStyle = '#555';
+                ctx.fillRect(healthX, healthY, healthWidth, healthHeight);
+                
+                // Health fill
+                const healthPercent = entity.health / entity.maxHealth;
+                ctx.fillStyle = healthPercent > 0.6 ? '#4caf50' : (healthPercent > 0.3 ? '#ff9800' : '#f44336');
+                ctx.fillRect(healthX, healthY, healthWidth * healthPercent, healthHeight);
+            }
+            
+            // Additional info for units
+            if (entity.type === 'unit') {
+                // Show carried resources
+                if (entity.carriedResource && entity.carriedResource.amount > 0) {
+                    ctx.fillText(
+                        `Carrying: ${Math.floor(entity.carriedResource.amount)} ${entity.carriedResource.type}`,
+                        300, panelY + 40
+                    );
+                }
+            }
+            // Additional info for buildings
+            else if (entity.type === 'building') {
+                // Show training queue
+                if (entity.trainingQueue && entity.trainingQueue.length > 0) {
+                    const training = entity.trainingQueue[0];
+                    ctx.fillText(`Training: ${training.unitType}`, 300, panelY + 40);
+                    
+                    // Progress bar
+                    const progressWidth = 150;
+                    const progressHeight = 10;
+                    const progressX = 400;
+                    const progressY = panelY + 40;
+                    
+                    // Background
+                    ctx.fillStyle = '#555';
+                    ctx.fillRect(progressX, progressY, progressWidth, progressHeight);
+                    
+                    // Progress fill
+                    const progressPercent = training.progress / training.time;
+                    ctx.fillStyle = '#2196f3';
+                    ctx.fillRect(progressX, progressY, progressWidth * progressPercent, progressHeight);
+                }
+            }
+        }
+    }
+    
+    renderButtons(ctx) {
+        // Draw action buttons
+        this.buttons.forEach(button => {
+            // Button background
+            ctx.fillStyle = '#555';
+            ctx.fillRect(button.x, button.y, button.width, button.height);
+            
+            // Button text
+            ctx.font = '14px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(button.text, button.x + button.width / 2, button.y + button.height / 2);
+        });
+    }
+    
+    updateSelection(entities) {
+        this.selectedEntities = entities;
+        this.updateButtons();
+    }
+    
+    updateButtons() {
+        this.buttons = [];
+        
+        if (this.selectedEntities.length === 0) return;
+        
+        const entity = this.selectedEntities[0];
+        const buttonSize = 60;
+        const margin = 10;
+        const startX = 20;
+        const startY = this.game.canvas.height - this.selectionPanelHeight + 20;
+        
+        // Add buttons based on entity type
+        if (entity.type === 'unit') {
+            this.buttons.push({
+                x: startX,
+                y: startY,
+                width: buttonSize,
+                height: buttonSize,
+                text: 'Move',
+                action: () => {
+                    this.activeAction = 'move';
+                }
+            });
+            
+            if (entity.canGather) {
+                this.buttons.push({
+                    x: startX + buttonSize + margin,
+                    y: startY,
+                    width: buttonSize,
+                    height: buttonSize,
+                    text: 'Gather',
+                    action: () => {
+                        this.activeAction = 'gather';
+                    }
+                });
+            }
+        }
+        else if (entity.type === 'building' && entity.canTrain) {
+            this.buttons.push({
+                x: startX,
+                y: startY,
+                width: buttonSize,
+                height: buttonSize,
+                text: 'Train',
+                action: () => {
+                    // Queue villager for now
+                    entity.queueUnit('villager');
+                }
+            });
+        }
+    }
+    
+    handleClick(x, y) {
+        // Check if clicked on a button
+        for (const button of this.buttons) {
+            if (x >= button.x && x <= button.x + button.width &&
+                y >= button.y && y <= button.y + button.height) {
+                button.action();
+                return true;
+            }
+        }
+        
+        // Check if clicked on minimap
+        const minimapX = this.game.canvas.width - this.minimapSize - 10;
+        const minimapY = this.game.canvas.height - this.minimapSize - 10;
+        
+        if (x >= minimapX && x <= minimapX + this.minimapSize &&
+            y >= minimapY && y <= minimapY + this.minimapSize) {
+            
+            // Convert to map coordinates
+            const mapX = (x - minimapX) / this.minimapSize * this.game.mapSize.width;
+            const mapY = (y - minimapY) / this.minimapSize * this.game.mapSize.height;
+            
+            // Center viewport
+            this.game.viewPort.x = mapX - this.game.viewPort.width / 2;
+            this.game.viewPort.y = mapY - this.game.viewPort.height / 2;
+            
+            // Constrain to map bounds
+            this.game.viewPort.x = Math.max(0, Math.min(this.game.viewPort.x, 
+                this.game.mapSize.width - this.game.viewPort.width));
+            this.game.viewPort.y = Math.max(0, Math.min(this.game.viewPort.y, 
+                this.game.mapSize.height - this.game.viewPort.height));
+            
+            return true;
+        }
+        
+        // Check if clicked in UI areas
+        if (y < this.topBarHeight) {
+            return true;
+        }
+        
+        if (this.selectedEntities.length > 0 && y > this.game.canvas.height - this.selectionPanelHeight) {
+            return true;
+        }
+        
+        return false;
+    }
+}
+
+// =====================================================
+// GAME INITIALIZATION
+// =====================================================
+
+function createInitialEntities(game, civilization) {
+    // Parameters based on civilization
+    const playerColor = civilization === 'solari' ? '#3498db' : '#9b59b6';
+    const aiColor = civilization === 'solari' ? '#9b59b6' : '#3498db';
+    
+    // Player starting area
+    const playerStartX = 400;
+    const playerStartY = 400;
+    
+    // AI starting area (opposite corner)
+    const aiStartX = 1600;
+    const aiStartY = 1600;
+    
+    // Create player town center
+    const townCenter = new Building({
+        name: 'Town Center',
+        buildingType: 'townCenter',
+        position: { x: playerStartX, y: playerStartY },
+        size: 96,
+        color: playerColor,
+        owner: 1,
+        providesPopulation: 10,
+        canTrain: true,
+        trainableUnits: ['villager']
+    });
+    game.addEntity(townCenter);
+    
+    // Create starting villagers
+    for (let i = 0; i < 3; i++) {
+        const villager = new Unit({
+            name: 'Villager',
+            unitType: 'villager',
+            position: {
+                x: playerStartX + 50 + Math.random() * 100,
+                y: playerStartY + 50 + Math.random() * 100
+            },
+            size: 32,
+            color: playerColor,
+            owner: 1,
+            canGather: true,
+            canBuild: true,
+            maxResourceCapacity: 20
+        });
+        game.addEntity(villager);
+    }
+    
+    // Create AI town center
+    const aiTownCenter = new Building({
+        name: 'Town Center',
+        buildingType: 'townCenter',
+        position: { x: aiStartX, y: aiStartY },
+        size: 96,
+        color: aiColor,
+        owner: 2,
+        providesPopulation: 10,
+        canTrain: true,
+        trainableUnits: ['villager']
+    });
+    game.addEntity(aiTownCenter);
+    
+    // Create AI villagers
+    for (let i = 0; i < 3; i++) {
+        const aiVillager = new Unit({
+            name: 'Villager',
+            unitType: 'villager',
+            position: {
+                x: aiStartX + 50 + Math.random() * 100,
+                y: aiStartY + 50 + Math.random() * 100
+            },
+            size: 32,
+            color: aiColor,
+            owner: 2,
+            canGather: true,
+            canBuild: true,
+            maxResourceCapacity: 20
+        });
+        game.addEntity(aiVillager);
+    }
+    
+    // Create resources near player
+    const resources = [
+        { type: 'food', x: playerStartX - 200, y: playerStartY - 200, color: '#8BC34A' },
+        { type: 'wood', x: playerStartX + 200, y: playerStartY - 150, color: '#795548' },
+        { type: 'gold', x: playerStartX - 250, y: playerStartY + 200, color: '#FFC107' },
+        { type: 'stone', x: playerStartX + 250, y: playerStartY + 150, color: '#9E9E9E' }
+    ];
+    
+    // Add resources for player
+    resources.forEach(res => {
+        const resource = new Entity({
+            name: capitalizeFirstLetter(res.type),
+            type: 'resource',
+            resourceType: res.type,
+            position: { x: res.x, y: res.y },
+            size: 40,
+            color: res.color,
+            amount: 150
+        });
+        game.addEntity(resource);
+        
+        // Add mirrored resources for AI
+        const aiResource = new Entity({
+            name: capitalizeFirstLetter(res.type),
+            type: 'resource',
+            resourceType: res.type,
+            position: {
+                x: aiStartX + (res.x - playerStartX),
+                y: aiStartY + (res.y - playerStartY)
+            },
+            size: 40,
+            color: res.color,
+            amount: 150
+        });
+        game.addEntity(aiResource);
+    });
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// =====================================================
+// INPUT HANDLING
+// =====================================================
+
+function setupInput(game) {
+    const canvas = game.canvas;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let isSelecting = false;
+    let selectionStartX = 0;
+    let selectionStartY = 0;
+    
+    // Mouse down
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Check if clicking on UI first
+        if (game.ui && game.ui.handleClick(x, y)) {
+            return;
+        }
+        
+        if (e.button === 0) { // Left click
+            isSelecting = true;
+            selectionStartX = x + game.viewPort.x;
+            selectionStartY = y + game.viewPort.y;
+            
+            // Select entity if clicked directly
+            const entity = getEntityAtPosition(game, x + game.viewPort.x, y + game.viewPort.y);
+            if (entity && entity.owner === game.activePlayer.id) {
+                // Clear previous selection
+                game.entities.forEach(e => e.selected = false);
+                
+                // Select this entity
+                entity.selected = true;
+                
+                // Update UI
+                if (game.ui) {
+                    game.ui.updateSelection([entity]);
+                }
+                
+                isSelecting = false;
+            }
+        } else if (e.button === 2) { // Right click
+            // Handle commands for selected entities
+            const selectedEntities = game.entities.filter(e => e.selected);
+            if (selectedEntities.length > 0) {
+                const worldX = x + game.viewPort.x;
+                const worldY = y + game.viewPort.y;
+                
+                // Check if clicking on a resource for gathering
+                const targetEntity = getEntityAtPosition(game, worldX, worldY);
+                
+                if (targetEntity && targetEntity.type === 'resource' && game.ui.activeAction === 'gather') {
+                    // Gather command
+                    selectedEntities.forEach(entity => {
+                        if (entity.canGather) {
+                            entity.gatherResource(targetEntity);
+                        }
+                    });
+                } else {
+                    // Move command
+                    selectedEntities.forEach(entity => {
+                        if (entity.moveToPosition) {
+                            entity.moveToPosition(worldX, worldY);
+                        }
+                    });
+                }
+                
+                // Reset active action
+                if (game.ui) {
+                    game.ui.activeAction = null;
+                }
+            }
+        } else if (e.button === 1) { // Middle click (camera panning)
+            isDragging = true;
+            dragStartX = x;
+            dragStartY = y;
+        }
+    });
+    
+    // Mouse move
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Handle camera panning
+        if (isDragging) {
+            game.viewPort.x += dragStartX - x;
+            game.viewPort.y += dragStartY - y;
+            
+            // Constrain to map bounds
+            game.viewPort.x = Math.max(0, Math.min(game.viewPort.x, 
+                game.mapSize.width - game.viewPort.width));
+            game.viewPort.y = Math.max(0, Math.min(game.viewPort.y, 
+                game.mapSize.height - game.viewPort.height));
+            
+            dragStartX = x;
+            dragStartY = y;
+        }
+    });
+    
+    // Mouse up
+    canvas.addEventListener('mouseup', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        if (e.button === 0 && isSelecting) { // Left button
+            isSelecting = false;
+            
+            // Convert to world coordinates
+            const startX = selectionStartX;
+            const startY = selectionStartY;
+            const endX = x + game.viewPort.x;
+            const endY = y + game.viewPort.y;
+            
+            // Calculate selection box
+            const left = Math.min(startX, endX);
+            const top = Math.min(startY, endY);
+            const width = Math.abs(endX - startX);
+            const height = Math.abs(endY - startY);
+            
+            // Require minimum selection size to avoid accidental selections
+            if (width > 5 && height > 5) {
+                // Clear previous selection
+                game.entities.forEach(e => e.selected = false);
+                
+                // Find entities in selection box
+                const selectedEntities = game.entities.filter(entity => 
+                    entity.owner === game.activePlayer.id && // Only select player's entities
+                    entity.position.x >= left &&
+                    entity.position.y >= top &&
+                    entity.position.x + entity.size <= left + width &&
+                    entity.position.y + entity.size <= top + height
+                );
+                
+                // Select them
+                selectedEntities.forEach(entity => entity.selected = true);
+                
+                // Update UI
+                if (game.ui) {
+                    game.ui.updateSelection(selectedEntities);
+                }
+            }
+        } else if (e.button === 1) { // Middle button
+            isDragging = false;
+        }
+    });
+    
+    // Prevent context menu
+    canvas.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+    });
+    
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+        const moveSpeed = 20;
+        
+        switch (e.key) {
+            case 'ArrowUp':
+                game.viewPort.y = Math.max(0, game.viewPort.y - moveSpeed);
+                break;
+            case 'ArrowDown':
+                game.viewPort.y = Math.min(game.mapSize.height - game.viewPort.height, game.viewPort.y + moveSpeed);
+                break;
+            case 'ArrowLeft':
+                game.viewPort.x = Math.max(0, game.viewPort.x - moveSpeed);
+                break;
+            case 'ArrowRight':
+                game.viewPort.x = Math.min(game.mapSize.width - game.viewPort.width, game.viewPort.x + moveSpeed);
+                break;
+            case 'Escape':
+                // Deselect all entities
+                game.entities.forEach(e => e.selected = false);
+                if (game.ui) {
+                    game.ui.updateSelection([]);
+                }
+                break;
+        }
+    });
+}
+
+function getEntityAtPosition(game, x, y) {
+    // Iterate from top to bottom (reverse order of rendering)
+    for (let i = game.entities.length - 1; i >= 0; i--) {
+        const entity = game.entities[i];
+        
+        // Check if point is inside entity
+        if (x >= entity.position.x && 
+            y >= entity.position.y && 
+            x <= entity.position.x + entity.size && 
+            y <= entity.position.y + entity.size) {
+            return entity;
+        }
+    }
+    
+    return null;
+}
+</script>
+</body>
+</html>

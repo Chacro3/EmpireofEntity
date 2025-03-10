@@ -56,7 +56,15 @@ class CivilizationSelector {
       script.src = "js/config.js";
       script.onload = () => {
         if (typeof CONFIG !== "undefined") {
-          resolve();
+          // Also load the config wrapper for consistency
+          const wrapperScript = document.createElement("script");
+          wrapperScript.src = "config-wrapper.js";
+          wrapperScript.onload = () => resolve();
+          wrapperScript.onerror = () => {
+            console.warn("Failed to load config-wrapper.js, but continuing anyway");
+            resolve(); // Continue despite error
+          };
+          document.head.appendChild(wrapperScript);
         } else {
           reject(new Error("CONFIG not defined after loading config.js"));
         }

@@ -58,6 +58,14 @@ class AudioSystem {
     // Sound cooldowns to prevent spam
     this.cooldowns = {};
 
+    // Add this near the top of the file, after the AudioManager constructor
+    // or in the initialization method
+
+    /**
+     * Create a fallback mechanism for missing audio files
+     */
+    this.setupFallbacks();
+
     Utils.log("AudioSystem created");
   }
 
@@ -96,6 +104,9 @@ class AudioSystem {
 
       // Load sound effects
       this.loadSounds();
+
+      // Add this to the initialization sequence (init method)
+      this.setupFallbacks();
 
       Utils.log("AudioSystem initialized successfully");
     } catch (error) {
@@ -1202,6 +1213,61 @@ class AudioSystem {
         fadeIn: 5000, // 5 second fade in
         fadeOut: 5000, // 5 second fade out
       });
+    }
+  }
+
+  /**
+   * Create a fallback mechanism for missing audio files
+   */
+  setupFallbacks() {
+    // Check if both Howler and AssetLoader are available
+    if (typeof Howl === 'undefined') {
+      console.warn('Howler.js not available. Audio will be disabled.');
+      this.settings.enabled = false;
+      return;
+    }
+
+    // Default silent sound as fallback
+    this.silentSound = new Howl({
+      src: ['data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA'],
+      preload: true,
+      volume: 0
+    });
+
+    console.log('Audio fallbacks initialized');
+  }
+
+  /**
+   * Modified play method with fallback handling
+   */
+  play(soundId, volume, loop) {
+    if (!this.settings.enabled || !this.categories.sfx[soundId]) {
+      // Use silent fallback if sound not found
+      if (this.silentSound) {
+        return this.silentSound.play();
+      }
+      return -1; // Error code
+    }
+
+    try {
+      const sound = this.categories.sfx[soundId];
+      const actualVolume = typeof volume !== 'undefined' ? volume : 1;
+      
+      // Set volume and loop status
+      sound.gain.gain.value = actualVolume * this.settings.sfxVolume;
+      if (typeof loop !== 'undefined') {
+        sound.loop = loop;
+      }
+      
+      // Play and return the sound ID
+      return sound.source.start();
+    } catch (e) {
+      console.error('Error playing sound:', soundId, e);
+      // Use silent fallback if error occurs
+      if (this.silentSound) {
+        return this.silentSound.play();
+      }
+      return -1; // Error code
     }
   }
 }

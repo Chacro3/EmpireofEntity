@@ -1,0 +1,166 @@
+/* Empires of Eternity - Civilization Selection Stylesheet */
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    color: #ffffff;
+    font-family: "Arial", sans-serif;
+    background-image: url("assets/background.jpg");
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    max-width: 1000px;
+    padding: 2rem;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+    text-align: center;
+    font-size: 2.5rem;
+    color: #ffd700;
+    margin-bottom: 2rem;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.civilizations {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.civilization-card {
+    background-color: rgba(40, 40, 40, 0.8);
+    border-radius: 8px;
+    padding: 1.5rem;
+    width: 300px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.civilization-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.civilization-card.selected {
+    border-color: #ffd700;
+    box-shadow: 0 0 15px #ffd700;
+}
+
+.civ-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+}
+
+.solari .civ-icon {
+    background-color: #ffd700;
+}
+
+.lunari .civ-icon {
+    background-color: #c0c0c0;
+}
+
+.civ-name {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.solari .civ-name {
+    color: #ffd700;
+}
+
+.lunari .civ-name {
+    color: #c0c0c0;
+}
+
+.civ-description {
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+    color: #cccccc;
+}
+
+.civ-perks {
+    text-align: left;
+    margin-bottom: 1.5rem;
+}
+
+.civ-perks h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.perk-list {
+    list-style-type: none;
+}
+
+.perk-list li {
+    padding: 0.3rem 0;
+    display: flex;
+    align-items: center;
+}
+
+.perk-list li:before {
+    content: "•";
+    margin-right: 0.5rem;
+    color: #ffd700;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    background-color: #b92c1b;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background-color: #e03a27;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #555555;
+}
+
+.btn-secondary:hover {
+    background-color: #666666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .civilizations {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .civilization-card {
+        width: 100%;
+        max-width: 400px;
+    }
+}

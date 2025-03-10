@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Placeholder Images</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { margin-bottom: 20px; }
+        canvas { border: 1px solid #ccc; margin: 5px; }
+        button { padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Placeholder Image Generator</h1>
+    
+    <div class="container">
+        <h2>Logo (400x200)</h2>
+        <canvas id="logo" width="400" height="200"></canvas>
+        <button onclick="downloadImage('logo', 'logo.png')">Download Logo</button>
+    </div>
+    
+    <div class="container">
+        <h2>Background (800x600)</h2>
+        <canvas id="background" width="800" height="600"></canvas>
+        <button onclick="downloadImage('background', 'background.jpg')">Download Background</button>
+    </div>
+    
+    <div class="container">
+        <h2>Unit Icons (64x64)</h2>
+        <canvas id="icon1" width="64" height="64"></canvas>
+        <canvas id="icon2" width="64" height="64"></canvas>
+        <canvas id="icon3" width="64" height="64"></canvas>
+        <button onclick="downloadImage('icon1', 'attack.png')">Download Attack Icon</button>
+        <button onclick="downloadImage('icon2', 'move.png')">Download Move Icon</button>
+        <button onclick="downloadImage('icon3', 'build.png')">Download Build Icon</button>
+    </div>
+    
+    <div class="container">
+        <h2>Unit Portraits (128x128)</h2>
+        <canvas id="portrait1" width="128" height="128"></canvas>
+        <canvas id="portrait2" width="128" height="128"></canvas>
+        <button onclick="downloadImage('portrait1', 'mixed_units.png')">Download Mixed Units Portrait</button>
+        <button onclick="downloadImage('portrait2', 'villager.png')">Download Villager Portrait</button>
+    </div>
+    
+    <script>
+        // Draw logo
+        function drawLogo() {
+            const canvas = document.getElementById('logo');
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Text
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Empire of Entity', canvas.width/2, canvas.height/2 - 20);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px Arial';
+            ctx.fillText('Game Logo Placeholder', canvas.width/2, canvas.height/2 + 30);
+        }
+        
+        // Draw background
+        function drawBackground() {
+            const canvas = document.getElementById('background');
+            const ctx = canvas.getContext('2d');
+            
+            // Gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#000033');
+            gradient.addColorStop(1, '#330033');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add some "stars"
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const size = Math.random() * 2 + 1;
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Text
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Game Background Placeholder', canvas.width/2, canvas.height/2);
+        }
+        
+        // Draw icons
+        function drawIcons() {
+            // Attack icon
+            const icon1 = document.getElementById('icon1');
+            const ctx1 = icon1.getContext('2d');
+            ctx1.fillStyle = '#b33';
+            ctx1.fillRect(0, 0, icon1.width, icon1.height);
+            ctx1.strokeStyle = '#fff';
+            ctx1.lineWidth = 3;
+            ctx1.beginPath();
+            ctx1.moveTo(15, 15);
+            ctx1.lineTo(49, 49);
+            ctx1.moveTo(15, 49);
+            ctx1.lineTo(49, 15);
+            ctx1.stroke();
+            
+            // Move icon
+            const icon2 = document.getElementById('icon2');
+            const ctx2 = icon2.getContext('2d');
+            ctx2.fillStyle = '#33b';
+            ctx2.fillRect(0, 0, icon2.width, icon2.height);
+            ctx2.fillStyle = '#fff';
+            ctx2.beginPath();
+            ctx2.moveTo(32, 10);
+            ctx2.lineTo(50, 30);
+            ctx2.lineTo(40, 30);
+            ctx2.lineTo(40, 50);
+            ctx2.lineTo(24, 50);
+            ctx2.lineTo(24, 30);
+            ctx2.lineTo(14, 30);
+            ctx2.fill();
+            
+            // Build icon
+            const icon3 = document.getElementById('icon3');
+            const ctx3 = icon3.getContext('2d');
+            ctx3.fillStyle = '#3b3';
+            ctx3.fillRect(0, 0, icon3.width, icon3.height);
+            ctx3.fillStyle = '#fff';
+            ctx3.beginPath();
+            ctx3.moveTo(10, 40);
+            ctx3.lineTo(30, 40);
+            ctx3.lineTo(30, 20);
+            ctx3.lineTo(40, 20);
+            ctx3.lineTo(40, 40);
+            ctx3.lineTo(54, 40);
+            ctx3.lineTo(32, 15);
+            ctx3.fill();
+        }
+        
+        // Draw unit portraits
+        function drawPortraits() {
+            // Mixed units portrait
+            const portrait1 = document.getElementById('portrait1');
+            const ctx1 = portrait1.getContext('2d');
+            ctx1.fillStyle = '#444';
+            ctx1.fillRect(0, 0, portrait1.width, portrait1.height);
+            
+            // Draw silhouettes
+            ctx1.fillStyle = '#aaa';
+            ctx1.beginPath();
+            ctx1.arc(40, 40, 20, 0, Math.PI * 2);
+            ctx1.fill();
+            
+            ctx1.fillStyle = '#ccc';
+            ctx1.beginPath();
+            ctx1.arc(80, 50, 25, 0, Math.PI * 2);
+            ctx1.fill();
+            
+            ctx1.fillStyle = '#999';
+            ctx1.beginPath();
+            ctx1.arc(65, 90, 22, 0, Math.PI * 2);
+            ctx1.fill();
+            
+            ctx1.font = '12px Arial';
+            ctx1.fillStyle = '#fff';
+            ctx1.textAlign = 'center';
+            ctx1.fillText('Multiple Units', 64, 118);
+            
+            // Villager portrait
+            const portrait2 = document.getElementById('portrait2');
+            const ctx2 = portrait2.getContext('2d');
+            ctx2.fillStyle = '#555';
+            ctx2.fillRect(0, 0, portrait2.width, portrait2.height);
+            
+            // Draw villager silhouette
+            ctx2.fillStyle = '#ddd';
+            ctx2.beginPath();
+            ctx2.arc(64, 50, 30, 0, Math.PI * 2); // head
+            ctx2.fill();
+            
+            ctx2.fillStyle = '#bbb';
+            ctx2.fillRect(39, 80, 50, 40); // body
+            
+            ctx2.font = '12px Arial';
+            ctx2.fillStyle = '#fff';
+            ctx2.textAlign = 'center';
+            ctx2.fillText('Villager', 64, 115);
+        }
+        
+        // Download canvas as image
+        function downloadImage(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // Initialize all canvas drawings
+        window.onload = function() {
+            drawLogo();
+            drawBackground();
+            drawIcons();
+            drawPortraits();
+        };
+    </script>
+</body>
+</html> 

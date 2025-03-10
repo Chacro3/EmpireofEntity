@@ -8,6 +8,7 @@ class Renderer {
     this.game = game;
     this.canvas = null;
     this.ctx = null;
+    this.viewPort = null;
 
     // Camera settings
     this.camera = {
@@ -45,12 +46,14 @@ class Renderer {
 
     // Render layers for z-ordering
     this.layers = {
-      TERRAIN: 0,
-      RESOURCES: 1,
-      BUILDINGS: 2,
-      UNITS: 3,
-      EFFECTS: 4,
-      UI: 5,
+      BACKGROUND: 0,
+      TERRAIN: 1,
+      RESOURCES: 2,
+      SHADOWS: 3,
+      BUILDINGS: 4,
+      UNITS: 5,
+      EFFECTS: 6,
+      UI: 7,
     };
 
     // Lighting settings for PBR
@@ -65,6 +68,9 @@ class Renderer {
     // Keeps track of loaded assets
     this.assetsLoaded = 0;
     this.assetsTotal = 0;
+
+    // Sprite caching to improve performance
+    this.spriteCache = {};
 
     // Make utils available
     if (!window.Utils) {
@@ -88,6 +94,12 @@ class Renderer {
   init(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
+    this.viewPort = {
+      x: 0,
+      y: 0,
+      width: canvas.width,
+      height: canvas.height,
+    };
 
     // Get canvas dimensions from CONFIG or set defaults
     if (window.CONFIG && window.CONFIG.CANVAS) {
@@ -104,6 +116,32 @@ class Renderer {
 
     // Set initial camera position to center of map
     this.centerCamera();
+
+    // Preload common sprites
+    this.preloadSprites();
+    
+    // Set up any rendering-specific state
+    this.setupRendering();
+
+    return this;
+  }
+
+  /**
+   * Preload commonly used sprites
+   */
+  preloadSprites() {
+    // Will be used later to cache sprites for better performance
+  }
+
+  /**
+   * Set up rendering-specific configuration
+   */
+  setupRendering() {
+    // Enable image smoothing for better quality
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'high';
+    
+    console.log("Rendering setup complete");
   }
 
   /**
@@ -981,28 +1019,13 @@ class Renderer {
    * Render the game
    */
   render() {
-    // Clear the canvas
-    this.ctx.fillStyle = "#000000";
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Apply camera transform
-    this.ctx.save();
-    this.ctx.scale(this.camera.zoom, this.camera.zoom);
-    this.ctx.translate(-this.camera.x, -this.camera.y);
-
-    // Render map
+    this.clear();
     this.renderMap();
-
-    // Render entities
     this.renderEntities();
-
-    // Restore original transform
-    this.ctx.restore();
-
-    // Render UI (in screen space)
     this.renderUI();
-
-    // Render debug info if enabled
+    this.renderEffects();
+    
+    // Debug info if enabled
     if (this.debugMode) {
       this.renderDebugInfo();
     }
@@ -1012,7 +1035,15 @@ class Renderer {
   }
 
   /**
-   * Render the map terrain and resources
+   * Clear the canvas
+   */
+  clear() {
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  /**
+   * Render the game map
    */
   renderMap() {
     const map = this.game.getSystem("map");
@@ -1446,34 +1477,156 @@ class Renderer {
    * Render UI elements
    */
   renderUI() {
-    // For now, UI is rendered by the DOM
-    // This would render canvas-based UI elements like minimap, selection boxes, etc.
+    // Use game's UI manager if available
+    if (this.game.ui && this.game.ui.render) {
+      this.game.ui.render(this.ctx);
+    } else {
+      this.renderFallbackUI();
+    }
+  }
 
-    // Render selection box if dragging
-    const input = this.game.getSystem("input");
-    if (
-      input &&
-      input.currentAction &&
-      input.currentAction.type === "select" &&
-      input.mouse.isDown
-    ) {
-      const startX = input.currentAction.startX;
-      const startY = input.currentAction.startY;
-      const endX = input.mouse.x;
-      const endY = input.mouse.y;
+  /**
+   * Render fallback UI when UI manager is not available
+   */
+  renderFallbackUI() {
+    // Top resource bar
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(0, 0, this.canvas.width, 40);
+    
+    // Player resources
+    if (this.game.activePlayer) {
+      const resources = this.game.activePlayer.resources;
+      
+      this.ctx.fillStyle = '#fff';
+      this.ctx.font = '16px Arial';
+      
+      // Resource display
+      this.ctx.fillText(`Food: ${resources.food}`, 20, 25);
+      this.ctx.fillText(`Wood: ${resources.wood}`, 150, 25);
+      this.ctx.fillText(`Gold: ${resources.gold}`, 280, 25);
+      this.ctx.fillText(`Stone: ${resources.stone}`, 410, 25);
+      this.ctx.fillText(`Population: ${resources.population}/${resources.populationCap}`, 540, 25);
+    }
+    
+    // Minimap
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(this.canvas.width - 210, this.canvas.height - 210, 200, 200);
+    
+    // Minimap content
+    this.ctx.fillStyle = '#1a4d1a';
+    this.ctx.fillRect(this.canvas.width - 205, this.canvas.height - 205, 190, 190);
+    
+    // Selection info panel if something is selected
+    const selectedEntities = this.game.entities.filter(e => e.selected);
+    if (selectedEntities.length > 0) {
+      this.renderSelectionPanel(selectedEntities);
+    }
+  }
+  
+  /**
+   * Render selection panel
+   */
+  renderSelectionPanel(selectedEntities) {
+    // Command panel background
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(10, this.canvas.height - 110, 300, 100);
+    
+    const entity = selectedEntities[0]; // Just use the first selected entity for now
+    
+    // Entity name
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = 'bold 16px Arial';
+    this.ctx.fillText(entity.name || entity.type || 'Selected Entity', 20, this.canvas.height - 85);
+    
+    // Health info if available
+    if (entity.health !== undefined && entity.maxHealth !== undefined) {
+      this.ctx.font = '14px Arial';
+      this.ctx.fillText(`Health: ${entity.health}/${entity.maxHealth}`, 20, this.canvas.height - 65);
+    }
+    
+    // Show action buttons
+    const actions = this.getEntityActions(entity);
+    
+    // Draw action buttons
+    for (let i = 0; i < Math.min(actions.length, 4); i++) {
+      const action = actions[i];
+      
+      // Button background
+      this.ctx.fillStyle = '#555';
+      this.ctx.fillRect(20 + i * 70, this.canvas.height - 50, 60, 40);
+      
+      // Button text
+      this.ctx.fillStyle = '#fff';
+      this.ctx.font = '12px Arial';
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(action.name, 50 + i * 70, this.canvas.height - 30);
+      this.ctx.textAlign = 'left';
+    }
+  }
+  
+  /**
+   * Get available actions for an entity
+   */
+  getEntityActions(entity) {
+    const actions = [];
+    
+    if (entity.type === 'unit') {
+      actions.push({ name: 'Move', icon: 'move' });
+      
+      if (entity.canAttack) {
+        actions.push({ name: 'Attack', icon: 'attack' });
+      }
+      
+      if (entity.canGather) {
+        actions.push({ name: 'Gather', icon: 'gather' });
+      }
+      
+      if (entity.canBuild) {
+        actions.push({ name: 'Build', icon: 'build' });
+      }
+    } else if (entity.type === 'building') {
+      if (entity.canTrain) {
+        actions.push({ name: 'Train', icon: 'train' });
+      }
+      
+      if (entity.canResearch) {
+        actions.push({ name: 'Research', icon: 'research' });
+      }
+      
+      actions.push({ name: 'Rally', icon: 'rally' });
+    }
+    
+    return actions;
+  }
 
-      // Draw selection box
-      this.ctx.strokeStyle = "rgba(0, 255, 0, 0.7)";
-      this.ctx.lineWidth = 1;
-      this.ctx.setLineDash([5, 2]);
+  /**
+   * Render visual effects
+   */
+  renderEffects() {
+    // For now, just render day/night overlay
+    this.renderDayNightEffect();
+  }
 
-      const left = Math.min(startX, endX);
-      const top = Math.min(startY, endY);
-      const width = Math.abs(endX - startX);
-      const height = Math.abs(endY - startY);
-
-      this.ctx.strokeRect(left, top, width, height);
-      this.ctx.setLineDash([]);
+  /**
+   * Render day/night lighting effect
+   */
+  renderDayNightEffect() {
+    // Day/night cycle lighting effects
+    if (!this.game.dayNightCycle.isDay) {
+      // Night effect
+      const gradient = this.ctx.createRadialGradient(
+        this.canvas.width / 2, this.canvas.height / 2, 100,
+        this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 1.5
+      );
+      gradient.addColorStop(0, 'rgba(20, 20, 50, 0)');
+      gradient.addColorStop(1, 'rgba(20, 20, 50, 0.7)');
+      
+      this.ctx.fillStyle = gradient;
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    } else {
+      // Subtle day effect (softer lighting)
+      this.ctx.fillStyle = 'rgba(255, 255, 200, 0.05)';
+      this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
   }
 
@@ -1481,45 +1634,21 @@ class Renderer {
    * Render debug information
    */
   renderDebugInfo() {
-    this.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-    this.ctx.fillRect(10, 10, 200, 100);
-
-    this.ctx.fillStyle = "white";
-    this.ctx.font = "12px monospace";
-    this.ctx.textAlign = "left";
-    this.ctx.textBaseline = "top";
-
-    // FPS counter
-    this.ctx.fillText(`FPS: ${this.fps}`, 15, 15);
-
-    // Camera info
-    this.ctx.fillText(
-      `Camera: (${Math.floor(this.camera.x)}, ${Math.floor(this.camera.y)})`,
-      15,
-      30
-    );
-    this.ctx.fillText(`Zoom: ${this.camera.zoom.toFixed(2)}`, 15, 45);
-
-    // Mouse position
-    const input = this.game.getSystem("input");
-    if (input) {
-      this.ctx.fillText(`Mouse: (${input.mouse.x}, ${input.mouse.y})`, 15, 60);
-      this.ctx.fillText(
-        `Grid: (${input.mouse.gridX}, ${input.mouse.gridY})`,
-        15,
-        75
-      );
-    }
-
-    // Entity count
-    const entityManager = this.game.getSystem("entityManager");
-    if (entityManager) {
-      this.ctx.fillText(
-        `Entities: ${entityManager.entities?.length || 0}`,
-        15,
-        90
-      );
-    }
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(10, 50, 300, 150);
+    
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = '14px monospace';
+    
+    // Calculate FPS
+    const fps = Math.round(1 / (this.game.lastDeltaTime || 0.016));
+    
+    this.ctx.fillText(`FPS: ${fps}`, 20, 70);
+    this.ctx.fillText(`Entities: ${this.game.entities.length}`, 20, 90);
+    this.ctx.fillText(`Game Time: ${Math.floor(this.game.gameTime)}s`, 20, 110);
+    this.ctx.fillText(`Viewport: ${Math.round(this.viewPort.x)},${Math.round(this.viewPort.y)}`, 20, 130);
+    this.ctx.fillText(`Day/Night: ${this.game.dayNightCycle.isDay ? 'Day' : 'Night'}`, 20, 150);
+    this.ctx.fillText(`Memory: ${Math.round(performance.memory?.usedJSHeapSize / 1048576)}MB (of ${Math.round(performance.memory?.jsHeapSizeLimit / 1048576)}MB)`, 20, 170);
   }
 
   /**

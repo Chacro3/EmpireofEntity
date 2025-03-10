@@ -1,5 +1,5 @@
 /**
- * Empire of Entity - Main Entry Point
+ * Empire of Entity - Simplified Main Entry Point
  * Initializes and starts the game
  */
 
@@ -295,4 +295,4 @@ if (typeof module !== 'undefined' && module.exports) {
         initGame: window.initGame,
         setupGame
     };
-}
+} 
